@@ -1,0 +1,195 @@
+---
+title: "Data 607- Week 7 Assignment"
+author: "shri Tripathi"
+date: "2024-10-17"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Handling and Importing Various Data Formats {.tabset .tabset-pills}
+
+### Overview:
+
+This week's assignment focused on creating four files in different formats—JSON, HTML, XML, and Parquet. Each file contained a structured table of information including attributes such as title, author, language, year of publication, and more. The goal was to demonstrate how to create data tables in these formats and practice importing them into R as data frames. By working with multiple formats, we gained insights into the versatility of each format and their use cases in data storage and analysis. This task also helped us strengthen our skills in reading and handling diverse data formats in R
+
+```{r}
+library(dplyr)
+library(tidyverse)
+```
+
+## HTML
+
+To import the HTML data, I first created and uploaded the HTML file containing the information to GitHub. I used the `rvest` package in R to handle the extraction process. I passed the GitHub URL through the `read_html()` function, which retrieves the raw HTML data and stores it as an `xml_document` in the form of an `xml_node`. Then, using the `html_nodes()` function from the `dplyr` package, I located the table within the HTML data by specifying the "table" argument. This method efficiently extracts the table from the HTML structure for further analysis.
+
+After extracting the data from the table, I place it in the data frame html_data.
+
+```{r}
+# Load the necessary library for web scraping
+library(rvest)
+
+# URL to the HTML file on GitHub containing the table of data
+html_url = "https://raw.githubusercontent.com/Shriyanshh/Week-7-Assignment/refs/heads/main/data.html"
+
+# Read the HTML content from the GitHub URL
+git_html = read_html(html_url)
+
+# Check the class of the object to ensure it has been read correctly as HTML
+class(git_html)
+
+# Extract the first table from the HTML document into a data frame
+html_data = git_html %>% 
+  html_nodes("table") %>%  # Find all the tables in the HTML document
+  .[[1]] %>%               # Select the first table (if there are multiple tables)
+  html_table()             # Convert the HTML table into a data frame
+
+# Display the extracted data frame
+html_data
+
+```
+
+## JSON
+
+To import the JSON data, I utilized both the `jsonlite` and `httr` packages. First, I used `httr`'s `GET()` function to retrieve the JSON data from the web page, storing the result in `git_json`, which holds the data as a response object. Next, I applied `httr`'s `content()` function to extract the raw data from the response and store it as a character vector. Following that, I used `jsonlite`'s `fromJSON()` function to parse the JSON file and convert it into a list. By setting `flatten=TRUE`, I ensured that the list was transformed into a wide data frame format. Finally, I converted the list into a data frame for further analysis.
+
+```{r}
+# Load the necessary libraries for working with JSON data and making web requests
+library(jsonlite)  # For parsing JSON data
+library(httr)      # For handling HTTP requests
+
+# JSON file URL from GitHub
+json_url = "https://raw.githubusercontent.com/Shriyanshh/Week-7-Assignment/refs/heads/main/data.json"
+
+# Retrieve the JSON data from the GitHub URL using GET request
+git_json = GET(json_url)
+
+# Check the class of the response to confirm it's an HTTP response object
+class(git_json)
+
+# Extract the content from the HTTP response and convert it into a text format
+json_content = content(git_json, "text")
+
+# Check the class of the extracted content (it should be a character vector)
+class(json_content)
+
+# Parse the JSON content into an R object (list by default) and flatten it into a wide structure
+json_data = fromJSON(json_content, flatten = TRUE)
+
+# Check the class of the parsed JSON data (it should now be a list or data frame)
+class(json_data)
+
+# Convert the JSON data (list) into a data frame for easier analysis
+json_data = as.data.frame(json_data)
+
+# Display the JSON data frame
+json_data
+
+```
+
+## XML
+
+To import the XML data, I used the `xml2` package. I utilized the `read_xml()` function to read the XML data from the URL, which stores it as an `xml_document` in the form of `xml_nodes`. After retrieving the XML data, I converted it into a list and then transformed the list into a data frame for further analysis.
+
+```{r}
+# Set the CRAN mirror and install the arrow package
+install.packages("arrow", repos = "https://cloud.r-project.org")
+
+```
+```{r}
+# Load the arrow package for reading and writing Parquet files
+library(arrow)
+
+# URL to the Parquet file stored on GitHub
+parquet_url <- "https://raw.githubusercontent.com/Shriyanshh/Week-7-Assignment/main/data.parquet"
+
+# Download the Parquet file temporarily and save it locally as "data.parquet"
+download.file(parquet_url, destfile = "data.parquet", mode = "wb")
+
+# Read the downloaded Parquet file into R as a data frame
+git_parquet <- read_parquet("data.parquet")
+
+# Display the contents of the Parquet file, now stored as a data frame
+print(git_parquet)
+
+```
+
+## Parquet
+
+To import the Parquet data, I used the `arrow` package in R. First, I specified the URL to the Parquet file that I uploaded to GitHub. Since Parquet files cannot be read directly from a URL, I used `download.file()` to temporarily download the file to my local system. The downloaded file was saved as `"data.parquet"`. After downloading the file, I used the `read_parquet()` function from the `arrow` package to load the Parquet data into R and store it as a data frame. Finally, I printed the data frame to inspect the imported data.
+
+```{r}
+# Install and load the arrow package, which is used for reading and writing Parquet files
+setRepositories(ind = 1) # Choose a CRAN mirror
+install.packages("arrow")
+install.packages("arrow", repos = "https://cloud.r-project.org")
+library(arrow)
+
+
+# URL to the Parquet file stored on GitHub
+parquet_url <- "https://raw.githubusercontent.com/Shriyanshh/Week-7-Assignment/main/data.parquet"
+
+# Download the Parquet file temporarily and save it locally as "data.parquet"
+# Parquet files cannot be directly read from a URL, so we need to download it first
+download.file(parquet_url, destfile = "data.parquet", mode = "wb")
+
+# Read the downloaded Parquet file into R as a data frame
+git_parquet <- read_parquet("data.parquet")
+
+# Display the contents of the Parquet file, now stored as a data frame
+print(git_parquet)
+
+
+
+```
+
+## Pros and Cons:
+
+Each format has its own advantages and disadvantages depending on how the data is stored and analyzed. Below is an overview of each format along with its pros and cons.
+
+### Data Formats
+
+### 1. **JSON (JavaScript Object Notation)**
+
+**Pros:**\
+- Simple and human-readable format. - Supports nested structures, which makes it versatile. - Commonly used in APIs and web development for data exchange.
+
+**Cons:**\
+- May not be ideal for very large datasets. - Slower than binary formats like Parquet for large-scale data processing.
+
+### 2. **HTML (HyperText Markup Language)**
+
+**Pros:**\
+- Easily viewable in web browsers, making it accessible for visual inspection. - Great for displaying tabular data on web pages.
+
+**Cons:**\
+- Not optimized for analytical or large-scale data manipulation. - Requires parsing when converting to data frames in R.
+
+### 3. **XML (eXtensible Markup Language)**
+
+**Pros:**\
+- Structured and self-descriptive, ideal for storing hierarchical information. - Used widely in web services for data interchange.
+
+**Cons:**\
+- More verbose than JSON and less efficient for large datasets. - Parsing XML can be slower and more complex.
+
+### 4. **Parquet**
+
+**Pros:**\
+- Efficient columnar storage format that is excellent for big data analytics. - Supports compression and optimized for queries, reducing both storage and processing time.
+
+**Cons:**\
+- Not human-readable and requires specialized tools like `arrow` to access and manipulate. - Primarily useful for large datasets rather than small data exchange.
+
+## Conclusion
+
+In this assignment, we explored various file formats—JSON, HTML, XML, and Parquet—by creating and importing data tables for each format into R. Through this process, we gained practical experience in handling different data formats, uploading files to GitHub, and utilizing R packages to read and convert the data into data frames for analysis.
+
+For **JSON**, we utilized the `jsonlite` and `httr` packages to retrieve the file from GitHub, parse it into a list, and convert it to a wide data frame. For **HTML**, we used the `rvest` package to extract the table data from the raw HTML content stored on GitHub and converted it into a data frame. For **XML**, the `xml2` package was used to read the XML data, convert it into a list, and further transform it into a data frame. Lastly, for **Parquet**, we leveraged the `arrow` package, downloading the file temporarily from GitHub and reading it into R using the `read_parquet()` function.
+
+Overall, this assignment provided us with valuable insights into how different file formats can be used to store structured data and how we can efficiently work with them in R. It also reinforced our understanding of integrating data from different sources, such as GitHub, into a consistent data analysis workflow.
